@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Char Hack Admin ⭐7</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: #eee; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { text-align: center; padding: 20px; background: #16213e; border-radius: 10px; margin-bottom: 20px; }
+        .header h1 { color: #e94560; }
+        .login-box { max-width: 400px; margin: 100px auto; padding: 30px; background: #16213e; border-radius: 10px; text-align: center; }
+        .login-box input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #333; border-radius: 5px; background: #1a1a2e; color: #fff; }
+        .login-box button { width: 100%; padding: 12px; background: #e94560; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab { padding: 10px 20px; background: #16213e; border: none; color: #aaa; border-radius: 5px; cursor: pointer; }
+        .tab.active { background: #e94560; color: white; }
+        .panel { background: #16213e; border-radius: 10px; padding: 20px; display: none; }
+        .panel.active { display: block; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; color: #aaa; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #333; border-radius: 5px; background: #1a1a2e; color: #fff; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #333; }
+        th { background: #1a1a2e; color: #e94560; }
+        .badge { padding: 4px 8px; border-radius: 3px; font-size: 12px; }
+        .badge-success { background: #00c853; color: white; }
+        .badge-danger { background: #ff1744; color: white; }
+        .btn { padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; margin: 2px; color: white; }
+        .btn-danger { background: #ff1744; }
+        .btn-warning { background: #ff9100; }
+        .btn-primary { background: #2196f3; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: #1a1a2e; padding: 20px; border-radius: 10px; text-align: center; }
+        .stat-card h3 { color: #e94560; font-size: 2em; }
+    </style>
+</head>
+<body>
+    <div id="loginPage" class="login-box">
+        <h2>🔐 Admin Login</h2>
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()">Đăng Nhập</button>
+    </div>
+
+    <div id="adminPage" class="container" style="display:none">
+        <div class="header"><h1>⭐ CHAR HACK ADMIN ⭐7 SAO</h1></div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('keys')">🔑 Keys</button>
+            <button class="tab" onclick="showTab('users')">👥 Users</button>
+            <button class="tab" onclick="showTab('logs')">📊 Logs</button>
+            <button class="tab" onclick="showTab('create')">➕ Tạo Key</button>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card"><h3 id="totalKeys">0</h3><p>Tổng Keys</p></div>
+            <div class="stat-card"><h3 id="activeKeys">0</h3><p>Hoạt Động</p></div>
+            <div class="stat-card"><h3 id="totalUsers">0</h3><p>Người Dùng</p></div>
+            <div class="stat-card"><h3 id="totalHacks">0</h3><p>Lần Hack</p></div>
+        </div>
+
+        <div id="keysPanel" class="panel active">
+            <h2>🔑 Danh Sách Keys</h2>
+            <table><thead><tr><th>Key</th><th>User</th><th>Hạn</th><th>Trạng Thái</th><th>Action</th></tr></thead><tbody></tbody></table>
+        </div>
+
+        <div id="usersPanel" class="panel">
+            <h2>👥 Người Dùng</h2>
+            <table><thead><tr><th>User ID</th><th>Username</th><th>Tổng Keys</th><th>Hoạt Động</th></tr></thead><tbody></tbody></table>
+        </div>
+
+        <div id="logsPanel" class="panel">
+            <h2>📊 Lịch Sử Hack</h2>
+            <table><thead><tr><th>Thời Gian</th><th>User</th><th>Host</th><th>Char</th><th>Kết Quả</th></tr></thead><tbody></tbody></table>
+        </div>
+
+        <div id="createPanel" class="panel">
+            <h2>➕ Tạo Key Mới</h2>
+            <div class="form-group"><label>User ID</label><input type="text" id="newUserId"></div>
+            <div class="form-group"><label>Username</label><input type="text" id="newUsername"></div>
+            <div class="form-group"><label>Thời Hạn</label>
+                <select id="newDuration">
+                    <option value="1h">1 Giờ</option><option value="1d">1 Ngày</option>
+                    <option value="7d">7 Ngày</option><option value="30d" selected>30 Ngày</option>
+                    <option value="perm">Vĩnh Viễn</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" onclick="createKey()">🔑 Tạo Key</button>
+            <div id="newKeyResult" style="margin-top:20px; padding:15px; background:#1a1a2e; border-radius:5px; display:none;">
+                <h3>✅ Key:</h3>
+                <h2 id="generatedKey" style="color:#e94560; word-break:break-all;"></h2>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let token = '';
+        if (localStorage.getItem('adminToken')) {
+            token = localStorage.getItem('adminToken');
+            showAdmin();
+        }
+
+        function login() {
+            fetch('/api/admin/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: document.getElementById('password').value })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    token = data.token;
+                    localStorage.setItem('adminToken', token);
+                    showAdmin();
+                } else alert('Sai mật khẩu!');
+            });
+        }
+
+        function showAdmin() {
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('adminPage').style.display = 'block';
+            loadAll();
+        }
+
+        function showTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById(tab + 'Panel').classList.add('active');
+            if (tab === 'keys') loadKeys();
+            if (tab === 'users') loadUsers();
+            if (tab === 'logs') loadLogs();
+        }
+
+        function loadAll() { loadKeys(); loadUsers(); loadLogs(); }
+
+        function loadKeys() {
+            fetch(`/api/admin/keys?token=${token}`)
+                .then(r => r.json())
+                .then(keys => {
+                    document.querySelector('#keysTable tbody').innerHTML = keys.map(k => `
+                        <tr>
+                            <td><code>${k.key.substring(0, 12)}...</code></td>
+                            <td>${k.userId}</td>
+                            <td>${k.duration}</td>
+                            <td><span class="badge ${k.active && !k.expired ? 'badge-success' : 'badge-danger'}">${k.active && !k.expired ? 'Active' : 'Inactive'}</span></td>
+                            <td>
+                                <button class="btn btn-danger" onclick="deleteKey('${k.key}')">Xóa</button>
+                                <button class="btn btn-warning" onclick="toggleKey('${k.key}')">${k.active ? 'Disable' : 'Enable'}</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                    document.getElementById('totalKeys').textContent = keys.length;
+                    document.getElementById('activeKeys').textContent = keys.filter(k => k.active && !k.expired).length;
+                });
+        }
+
+        function loadUsers() {
+            fetch(`/api/admin/users?token=${token}`)
+                .then(r => r.json())
+                .then(users => {
+                    document.querySelector('#usersTable tbody').innerHTML = users.map(u => `
+                        <tr><td>${u.userId}</td><td>${u.username}</td><td>${u.keyCount}</td><td>${u.activeKeys}</td></tr>
+                    `).join('');
+                    document.getElementById('totalUsers').textContent = users.length;
+                });
+        }
+
+        function loadLogs() {
+            fetch(`/api/admin/logs?token=${token}&limit=50`)
+                .then(r => r.json())
+                .then(logs => {
+                    document.querySelector('#logsTable tbody').innerHTML = logs.map(l => `
+                        <tr>
+                            <td>${new Date(l.timestamp).toLocaleString('vi-VN')}</td>
+                            <td>${l.userId}</td>
+                            <td>${l.hostId}</td>
+                            <td>${l.charName || 'N/A'}</td>
+                            <td><span class="badge ${l.success ? 'badge-success' : 'badge-danger'}">${l.success ? '✅' : '❌'}</span></td>
+                        </tr>
+                    `).join('');
+                    document.getElementById('totalHacks').textContent = logs.length;
+                });
+        }
+
+        function createKey() {
+            const userId = document.getElementById('newUserId').value;
+            const username = document.getElementById('newUsername').value;
+            const duration = document.getElementById('newDuration').value;
+            if (!userId) return alert('Nhập User ID!');
+            
+            fetch('/api/admin/create-key', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token, userId, username, duration })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('generatedKey').textContent = data.key;
+                    document.getElementById('newKeyResult').style.display = 'block';
+                    loadKeys();
+                }
+            });
+        }
+
+        function deleteKey(key) {
+            if (!confirm('Xóa key này?')) return;
+            fetch('/api/admin/delete-key', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token, key })
+            })
+            .then(r => r.json())
+            .then(() => loadKeys());
+        }
+
+        function toggleKey(key) {
+            fetch('/api/admin/toggle-key', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token, key })
+            })
+            .then(r => r.json())
+            .then(() => loadKeys());
+        }
+    </script>
+</body>
+</html>
