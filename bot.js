@@ -5,7 +5,7 @@ const axios = require('axios');
 const fs = require('fs');
 
 const CONFIG = {
-    token: process.env.TOKEN || 'TOKEN_MOI',
+    token: process.env.TOKEN || 'MTUyMDM2NzU3ODA1MTI1MjI4NA.GsGNrL.KWo9kouVF5aiqj6phT4pYWw7dhkkfFdabnUVqA',
     clientId: process.env.CLIENT_ID || '1520367578051252284',
     adminId: '1306473992441430056',
     apiUrl: 'http://localhost:3000',
