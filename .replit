@@ -1,0 +1,5 @@
+language = "nodejs"
+run = "node server.js & node bot.js"
+
+[nix]
+channel = "stable-22_11"
