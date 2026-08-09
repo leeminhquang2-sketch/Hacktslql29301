@@ -1,11 +1,11 @@
-const { Client, GatewayIntentBits, EmbedBuilder, ActivityType, SlashCommandBuilder, REST, Routes } = require('discord.js');
+const { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes } = require('discord.js');
 const axios = require('axios');
 const fs = require('fs');
 
 const CONFIG = {
-    token: process.env.TOKEN || 'MTUyMDM2NzU3ODA1MTI1MjI4NA.GsGNrL.KWo9kouVF5aiqj6phT4pYWw7dhkkfFdabnUVqA',
-    clientId: process.env.CLIENT_ID || '1520367578051252284',
-    adminId: process.env.ADMIN_ID || '1306473992441430056',
+    token: 'MTUyMDM2NzU3ODA1MTI1MjI4NA.GESIvD.V17f90wiPo5X9SCnUlkDOGBichOjtDfHlEhdL4',
+    clientId: '1520367578051252284',
+    adminId: '1306473992441430056',
     apiUrl: process.env.API_URL || 'http://localhost:3000',
     contact: 'https://www.facebook.com/minhquang1102.a'
 };
@@ -17,7 +17,9 @@ const CHAR_7S = [
     { id: 99, name: "Thrue" }, { id: 50, name: "Lucy(xe)" },
 ];
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
+const client = new Client({
+    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent]
+});
 
 const KEY_FILE = './userkeys.json';
 function loadKeys() { try { if (fs.existsSync(KEY_FILE)) return JSON.parse(fs.readFileSync(KEY_FILE, 'utf8')); } catch(e) {} return {}; }
@@ -25,16 +27,82 @@ function saveKeys(keys) { fs.writeFileSync(KEY_FILE, JSON.stringify(keys, null, 
 let userKeys = loadKeys();
 
 const commands = [
-    new SlashCommandBuilder().setName('help').setDescription('📚 Xem hướng dẫn'),
-    new SlashCommandBuilder().setName('chars').setDescription('⭐ Danh sách nhân vật 7 sao'),
-    new SlashCommandBuilder().setName('getkey').setDescription('🔑 Nhận key riêng (lưu file)'),
-    new SlashCommandBuilder().setName('mykey').setDescription('🔍 Xem key của bạn'),
+    new SlashCommandBuilder().setName('help').setDescription('Xem hướng dẫn'),
+    new SlashCommandBuilder().setName('chars').setDescription('Danh sách nhân vật'),
+    new SlashCommandBuilder().setName('getkey').setDescription('Nhận key riêng'),
+    new SlashCommandBuilder().setName('mykey').setDescription('Xem key'),
     new SlashCommandBuilder()
-        .setName('hack').setDescription('🎮 Hack nhân vật 7 sao')
+        .setName('hack').setDescription('Hack nhân vật')
         .addStringOption(o => o.setName('hostid').setDescription('Host ID').setRequired(true))
         .addStringOption(o => o.setName('platform').setDescription('Platform').setRequired(true)
             .addChoices({name:'AMO',value:'AMO'},{name:'ATV',value:'ATV'},{name:'LG',value:'LG'},{name:'SS',value:'SS'}))
         .addIntegerOption(o => o.setName('charid').setDescription('Char ID').setRequired(true)),
+].map(c => c.toJSON());
+
+const rest = new REST({ version: '10' }).setToken(CONFIG.token);
+(async () => {
+    try {
+        await rest.put(Routes.applicationCommands(CONFIG.clientId), { body: commands });
+        console.log('✅ Commands OK!');
+    } catch(e) { console.error(e.message); }
+})();
+
+client.on('ready', () => console.log('✅ Bot:', client.user.tag));
+
+client.on('interactionCreate', async (interaction) => {
+    if (!interaction.isChatInputCommand()) return;
+    const { commandName } = interaction;
+    const userId = interaction.user.id;
+    const username = interaction.user.username;
+
+    if (commandName === 'help') {
+        await interaction.reply('🤖 **CHAR HACK BOT** ⭐7 Sao\n\n/getkey - Nhận key\n/mykey - Xem key\n/hack - Hack\n/chars - Nhân vật');
+    }
+
+    if (commandName === 'chars') {
+        await interaction.reply('⭐ **NHÂN VẬT 7 SAO:**\n' + CHAR_7S.map(c => '`' + c.id + '` - ' + c.name).join('\n'));
+    }
+
+    if (commandName === 'getkey') {
+        if (userKeys[userId]) return interaction.reply({ content: '❌ Bạn đã có key!', ephemeral: true });
+        try {
+            const res = await axios.post(CONFIG.apiUrl + '/api/admin/create-key', { userId, username, duration: '30d' });
+            if (res.data.success) {
+                userKeys[userId] = { key: res.data.key, username, createdAt: Date.now() };
+                saveKeys(userKeys);
+                await interaction.reply({ content: '✅ Key: ||' + res.data.key + '||', ephemeral: true });
+            }
+        } catch(e) { await interaction.reply({ content: '❌ Lỗi!', ephemeral: true }); }
+    }
+
+    if (commandName === 'mykey') {
+        const myKey = userKeys[userId];
+        if (!myKey) return interaction.reply({ content: '❌ Chưa có key!', ephemeral: true });
+        await interaction.reply({ content: '🔑 Key: ||' + myKey.key + '||', ephemeral: true });
+    }
+
+    if (commandName === 'hack') {
+        const hostId = interaction.options.getString('hostid');
+        const platform = interaction.options.getString('platform');
+        const charId = interaction.options.getInteger('charid');
+        const charData = CHAR_7S.find(c => c.id === charId);
+        if (!charData) return interaction.reply({ content: '❌ Sai char ID!', ephemeral: true });
+        const myKey = userKeys[userId];
+        if (!myKey) return interaction.reply({ content: '❌ Chưa có key!', ephemeral: true });
+
+        await interaction.reply('🔄 Đang hack...');
+        try {
+            const res = await axios.post(CONFIG.apiUrl + '/api/hack', { key: myKey.key, userId, hostId, platform, charId: String(charId) });
+            if (res.data.success) {
+                await interaction.editReply('✅ ' + res.data.msg);
+            } else {
+                await interaction.editReply('❌ ' + res.data.msg);
+            }
+        } catch(e) { await interaction.editReply('❌ Lỗi server!'); }
+    }
+});
+
+client.login(CONFIG.token);        .addIntegerOption(o => o.setName('charid').setDescription('Char ID').setRequired(true)),
     new SlashCommandBuilder()
         .setName('adminkey').setDescription('👑 Admin: Tạo key')
         .addUserOption(o => o.setName('user').setDescription('Chọn user').setRequired(true))
